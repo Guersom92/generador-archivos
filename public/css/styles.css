@@ -44,6 +44,8 @@ h1 {
   gap: 10px;
 }
 
+
+
 h2 {
   color: var(--primary-color);
   margin-bottom: 20px;
@@ -61,6 +63,13 @@ h2 {
   display: flex;
   flex-direction: column;
 }
+/* Estilos para los íconos */
+.title-icon {
+  width: 1.5em;
+  height: 1.5em;
+
+}
+
 
 /* Formulario */
 .form-group {
@@ -158,6 +167,11 @@ small {
   transition: var(--transition);
   width: 100%;
   margin-top: 10px;
+}
+
+.btn .title-icon {
+
+  filter: brightness(0) invert(1); /* Hace que el ícono sea blanco para que contraste con el fondo del botón */
 }
 
 .btn:hover {
