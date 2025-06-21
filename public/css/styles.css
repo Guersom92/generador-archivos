@@ -44,8 +44,6 @@ h1 {
   gap: 10px;
 }
 
-
-
 h2 {
   color: var(--primary-color);
   margin-bottom: 20px;
@@ -67,9 +65,7 @@ h2 {
 .title-icon {
   width: 1.5em;
   height: 1.5em;
-
 }
-
 
 /* Formulario */
 .form-group {
@@ -170,7 +166,6 @@ small {
 }
 
 .btn .title-icon {
-
   filter: brightness(0) invert(1); /* Hace que el ícono sea blanco para que contraste con el fondo del botón */
 }
 
@@ -275,6 +270,41 @@ small {
     transform: translate(-50%, 100%);
     opacity: 0;
   }
+}
+
+/* Mensaje de éxito */
+
+.success-message {
+  display: none;
+  background-color: #e6f6e6;
+  color: #003100;
+  padding: 15px 20px;
+  border-radius: 8px;
+  border-left: 5px solid #009400;
+  margin: 10px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 90%;
+  width: auto;
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out forwards;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.success-message::before {
+  content: "✔";
+  font-size: 1.2em;
+}
+
+.success-message.hide {
+  animation: slideOut 0.3s ease-out forwards;
 }
 
 /* Responsive */

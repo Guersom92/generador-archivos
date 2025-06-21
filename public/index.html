@@ -47,7 +47,10 @@
   </head>
   <body>
     <div class="container">
-      <h1><img src="/images/favicon.svg" alt="Icono" class="title-icon"> Generador de Archivos</h1>
+      <h1>
+        <img src="/images/favicon.svg" alt="Icono" class="title-icon" />
+        Generador de Archivos
+      </h1>
 
       <div class="card">
         <form id="fileForm">
@@ -69,11 +72,12 @@
             <div class="radio-group">
               <label>
                 <input type="radio" name="fileType" value="excel" checked />
-               <img src="/images/XLS.svg" alt="Icono" class="title-icon"> Excel
+                <img src="/images/XLS.svg" alt="Icono" class="title-icon" />
+                Excel
               </label>
               <label>
                 <input type="radio" name="fileType" value="pdf" />
-               <img src="/images/PDF.svg" alt="Icono" class="title-icon"> PDF
+                <img src="/images/PDF.svg" alt="Icono" class="title-icon" /> PDF
               </label>
             </div>
           </div>
@@ -96,7 +100,11 @@
           </div>
 
           <button type="submit" class="btn">
-            <img src="/images/favicon.svg" alt="Icono" class="title-icon">Generar Archivo
+            <img
+              src="/images/favicon.svg"
+              alt="Icono"
+              class="title-icon"
+            />Generar Archivo
           </button>
 
           <div id="loading" class="loading">
@@ -107,6 +115,13 @@
           <div
             id="error"
             class="error-message"
+            role="alert"
+            aria-live="assertive"
+            style="display: none"
+          ></div>
+          <div
+            id="success"
+            class="success-message"
             role="alert"
             aria-live="assertive"
             style="display: none"

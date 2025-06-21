@@ -6,17 +6,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileTypeRadios = document.getElementsByName('fileType');
     const loadingElement = document.getElementById('loading');
     const errorElement = document.getElementById('error');
-    
+    const successElement = document.getElementById('success');
+
     // Manejador del envío del formulario
     form.addEventListener('submit', handleSubmit);
-    
+
     async function handleSubmit(event) {
         event.preventDefault(); // Prevenir el envío tradicional del formulario
-        
+
         // Validar entrada
         const fileName = fileNameInput.value.trim() || 'datos';
         const fileType = document.querySelector('input[name="fileType"]:checked').value;
-        
+
         let data;
         try {
             data = JSON.parse(dataInput.value);
@@ -24,28 +25,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Los datos deben ser un arreglo de objetos');
             }
         } catch (error) {
-            showError('Formato de datos JSON inválido. Asegúrate de que sea un arreglo de objetos.');
+            showNotification('Formato de datos JSON inválido. Asegúrate de que sea un arreglo de objetos.', true);
             console.error('Error al parsear JSON:', error);
             return;
         }
-        
+
         // Mostrar carga
         showLoading(true);
-        
+
         try {
             if (fileType === 'excel') {
                 await generateExcel(fileName, data);
             } else {
                 await generatePdf(fileName, data);
             }
+            showNotification('Archivo generado y descargado');
         } catch (error) {
-            showError('Error al generar el archivo. Por favor, inténtalo de nuevo.');
+            showNotification('Error al generar el archivo. Por favor, inténtalo de nuevo.', true);
             console.error('Error al generar archivo:', error);
         } finally {
             showLoading(false);
         }
     }
-    
+
     // Función para generar archivo Excel
     async function generateExcel(fileName, data) {
         try {
@@ -59,12 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     data
                 })
             });
-            
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Error al generar el archivo Excel');
             }
-            
+
             // Descargar el archivo
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
@@ -75,18 +77,18 @@ document.addEventListener('DOMContentLoaded', () => {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-            
+
         } catch (error) {
             throw error;
         }
     }
-    
+
     // Función para generar archivo PDF
     async function generatePdf(fileName, data) {
         try {
             // Crear HTML para el PDF
             const htmlContent = createPdfHtml(data);
-            
+
             const response = await fetch('/api/files/pdf', {
                 method: 'POST',
                 headers: {
@@ -97,12 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     html: htmlContent
                 })
             });
-            
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Error al generar el archivo PDF');
             }
-            
+
             // Descargar el archivo
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
@@ -113,32 +115,32 @@ document.addEventListener('DOMContentLoaded', () => {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-            
+
         } catch (error) {
             throw error;
         }
     }
-    
+
     // Función para crear el HTML del PDF
     function createPdfHtml(data) {
         if (!data || data.length === 0) return '<p>No hay datos para mostrar</p>';
-        
+
         // Obtener las claves de los objetos (encabezados de la tabla)
         const headers = Object.keys(data[0]);
-        
+
         // Crear filas de la tabla
         const rows = data.map(item => {
-            const cells = headers.map(header => 
+            const cells = headers.map(header =>
                 `<td>${item[header] !== undefined ? item[header] : ''}</td>`
             ).join('');
             return `<tr>${cells}</tr>`;
         }).join('');
-        
+
         // Crear encabezados de la tabla
-        const headerRow = headers.map(header => 
+        const headerRow = headers.map(header =>
             `<th>${header}</th>`
         ).join('');
-        
+
         // Plantilla HTML completa
         return `
         <!DOCTYPE html>
@@ -176,51 +178,53 @@ document.addEventListener('DOMContentLoaded', () => {
         </html>
         `;
     }
-    
+
     // Mostrar/ocultar indicador de carga
     function showLoading(show) {
         if (show) {
             form.querySelector('button[type="submit"]').disabled = true;
             loadingElement.style.display = 'flex';
             errorElement.style.display = 'none';
+            successElement.style.display = 'none';
         } else {
             form.querySelector('button[type="submit"]').disabled = false;
             loadingElement.style.display = 'none';
         }
     }
-    
+
     // Mostrar mensaje de error
-    function showError(message) {
+    function showNotification(message, error) {
+        const elementToShow = error ? errorElement : successElement
         // Si ya hay un mensaje mostrándose, lo quitamos primero
-        if (errorElement.style.display === 'flex') {
-            errorElement.classList.add('hide');
+        if (elementToShow.style.display === 'flex') {
+            elementToShow.classList.add('hide');
             // Esperamos a que termine la animación de salida
             setTimeout(() => {
-                errorElement.classList.remove('hide');
-                errorElement.textContent = message;
-                errorElement.style.display = 'flex';
-                errorElement.setAttribute('aria-hidden', 'false');
-                
+                elementToShow.classList.remove('hide');
+                elementToShow.textContent = message;
+                elementToShow.style.display = 'flex';
+                elementToShow.setAttribute('aria-hidden', 'false');
+
                 // Ocultar el mensaje después de 5 segundos
-                setTimeout(hideError, 5000);
+                setTimeout(() => hideNotification(elementToShow), 5000);
             }, 300);
         } else {
-            errorElement.textContent = message;
-            errorElement.style.display = 'flex';
-            errorElement.setAttribute('aria-hidden', 'false');
-            
+            elementToShow.textContent = message;
+            elementToShow.style.display = 'flex';
+            elementToShow.setAttribute('aria-hidden', 'false');
+
             // Ocultar el mensaje después de 5 segundos
-            setTimeout(hideError, 5000);
+            setTimeout(() => hideNotification(elementToShow), 5000);
         }
     }
-    
-    // Función para ocultar el mensaje de error con animación
-    function hideError() {
-        errorElement.classList.add('hide');
+
+    // Función para ocultar la notificación con animación
+    function hideNotification(elementToShow) {
+        elementToShow.classList.add('hide');
         setTimeout(() => {
-            errorElement.style.display = 'none';
-            errorElement.classList.remove('hide');
-            errorElement.setAttribute('aria-hidden', 'true');
+            elementToShow.style.display = 'none';
+            elementToShow.classList.remove('hide');
+            elementToShow.setAttribute('aria-hidden', 'true');
         }, 300);
     }
 });

@@ -6,5 +6,10 @@
 
 # Archivos generados
 /public/downloads/*
+/test-results
 
-
+# Playwright
+node_modules/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
