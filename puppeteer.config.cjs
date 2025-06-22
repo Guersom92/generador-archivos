@@ -4,5 +4,7 @@ const { join } = require('path');
  * @type {import("puppeteer").Configuration}
  */
 module.exports = {
-    cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
+    cacheDirectory: process.env.PUPPETEER_CACHE_DIR
+        ? process.env.PUPPETEER_CACHE_DIR
+        : undefined,
 };
