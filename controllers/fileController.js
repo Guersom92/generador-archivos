@@ -1,7 +1,7 @@
 const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
-const puppeteer = require('puppeteer');
+const pdf = require('html-pdf');
 
 // Función para generar un nombre único temporal
 function generateTempFileName(extension) {
@@ -52,7 +52,7 @@ exports.generateExcel = (req, res) => {
 };
 
 // Función para generar archivo PDF
-exports.generatePdf = async (req, res) => {
+exports.generatePdf = (req, res) => {
     try {
         const { html, fileName = 'documento' } = req.body;
 
@@ -60,6 +60,24 @@ exports.generatePdf = async (req, res) => {
             return res.status(400).json({ error: 'Se requiere contenido HTML' });
         }
 
+        const options = {
+            format: 'A4',
+            border: {
+                top: '10mm',
+                right: '10mm',
+                bottom: '10mm',
+                left: '10mm'
+            },
+            type: 'pdf',
+            timeout: 30000,
+            childProcessOptions: {
+                env: {
+                    OPENSSL_CONF: '/dev/null',
+                },
+            }
+        };
+
+        // Crear el directorio de descargas si no existe
         const downloadsDir = path.join(__dirname, '..', 'public', 'downloads');
         if (!fs.existsSync(downloadsDir)) {
             fs.mkdirSync(downloadsDir, { recursive: true });
@@ -68,32 +86,27 @@ exports.generatePdf = async (req, res) => {
         const tempFileName = generateTempFileName('pdf');
         const filePath = path.join(downloadsDir, tempFileName);
 
-        // Usar Puppeteer para generar el PDF
-        const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: 'networkidle0' });
-        await page.pdf({
-            path: filePath,
-            format: 'A4',
-            margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }
-        });
-        await browser.close();
-
-        // Enviar el archivo como respuesta
-        res.download(filePath, `${fileName}.pdf`, (err) => {
-            // Eliminar el archivo después de enviarlo
-            try {
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
-                }
-            } catch (unlinkErr) {
-                console.error('Error al eliminar el archivo temporal:', unlinkErr);
-            }
+        // Crear el PDF
+        pdf.create(html, options).toFile(filePath, (err, result) => {
             if (err) {
-                console.error('Error al enviar el archivo:', err);
+                console.error('Error al generar PDF:', err);
+                return res.status(500).json({ error: 'Error al generar el PDF' });
             }
+
+            // Enviar el archivo como respuesta
+            res.download(result.filename, `${fileName}.pdf`, (err) => {
+                // Eliminar el archivo después de enviarlo
+                if (err) {
+                    console.error('Error al enviar el archivo:', err);
+                }
+                try {
+                    if (fs.existsSync(result.filename)) {
+                        fs.unlinkSync(result.filename);
+                    }
+                } catch (unlinkErr) {
+                    console.error('Error al eliminar el archivo temporal:', unlinkErr);
+                }
+            });
         });
 
     } catch (error) {
